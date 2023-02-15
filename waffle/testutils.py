@@ -77,6 +77,35 @@ class override_switch(_overrider[bool]):
     def get_value(self) -> bool:
         return self.obj.active
 
+    def save_options(self, test_func):
+
+        if not hasattr(test_func, '_overridden_switches'):
+            test_func._overridden_switches = None
+
+        if test_func._overridden_switches is None:
+            test_func._overridden_switches = {
+                self.name: self.active,
+            }
+        else:
+            # Duplicate dict to prevent subclasses from altering their parent.
+            test_func._overridden_switches = {
+                **test_func._overridden_switches,
+                self.name: self.active,
+            }
+
+    def decorate_class(self, cls):
+
+        self.save_options(cls)
+
+        def setUp(inner_self):
+            for switch_name, switch_state in inner_self._overridden_switches.items():
+                obj, _ = self.cls.objects.get_or_create(name=switch_name)
+                obj.active = switch_state
+                obj.save()
+                obj.flush()
+        cls.setUp = setUp
+        return cls
+
 
 class override_flag(_overrider[Optional[bool]]):
     cls = get_waffle_flag_model()

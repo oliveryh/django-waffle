@@ -271,6 +271,7 @@ class OverrideSwitchOnClassTestsMixin:
 
 
 @override_switch('foo', active=False)
+@override_switch('bar', active=True)
 class OverrideSwitchOnClassTestCase(OverrideSwitchOnClassTestsMixin,
                                     TestCase):
     """
@@ -340,15 +341,20 @@ class OverrideSampleOnClassTransactionTestCase(OverrideSampleOnClassTestsMixin,
     """
 
 
+@override_switch('bar', active=False)
 class InheritanceOverrideSwitchOnClassTests(OverrideSwitchOnClassTestCase):
     """
     Extend ``OverrideSwitchOnClassTestCase``
-    and make sure ``override_switch`` change still works.
+    and make sure ``override_switch``
+    - Inherits switch values from parent classes
+    - Overwrites switch values overriden on child class
     """
 
     def test_child_undecorated_method_is_set_properly_for_switch(self):
         self.assertFalse(waffle.switch_is_active('foo'))
 
+    def test_child_decorated_method_is_set_properly_for_switch(self):
+        self.assertFalse(waffle.switch_is_active('bar'))
 
 class InheritanceOverrideFlagOnClassTests(OverrideFlagOnClassTestCase):
     """
